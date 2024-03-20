@@ -34,7 +34,7 @@ else:
 
 fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
-ROOT = os.path.join(fscil_directory, "../../../data/")  # data in repo root dir
+ROOT = os.path.join(fscil_directory, "./data/")  # data in repo root dir
 NUM_WORKERS = 8 if device == torch.device("cuda") else 0
 BATCH_SIZE = 256
 NUM_REPEATS = 1
@@ -100,16 +100,19 @@ def pre_train(model):
     for epoch in range(EPOCHS):
         print(f"Epoch: {epoch+1}")
 
-        model.train()
+        # model.train()
 
         for _, (data, target) in tqdm(enumerate(pre_train_loader), total=len(base_train_set)//BATCH_SIZE):
             data = data.to(device)
             target = target.to(device)
-
+            print(data.shape)
+            print(target.shape)
             # apply transform and model on whole batch directly on device
             data, target = encode((data,target))
             output = model(data.squeeze())
-
+            print(output.shape)
+            print(target.shape)
+            print(data.shape)
             loss = F.cross_entropy(output.squeeze(), target)
 
             optimizer.zero_grad()
@@ -133,7 +136,7 @@ if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
         # Using same parameters as provided pre-trained models
-        model = TCN(1, -1, [25] * 8, [5] * 4 + [7] * 4).to(device)
+        model = TCN(20, 200, [256] * 8, [4] * 4 + [2] * 4).to(device)
 
         pre_train(model)
 

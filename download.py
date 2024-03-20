@@ -8,7 +8,7 @@ def main():
     mswc_dataset_training = MSWC_dataset.MSWC(root = "MSWC/", 
         subset = "base", procedure = "training", language = "English" ,download = True)
     mswc_dataset_training.download()
-    
+    print()
 
 if __name__ == "__main__":
     main()

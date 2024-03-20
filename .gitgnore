@@ -1,4 +1,5 @@
 *.ipynb
 \.idea/
 \.vscode/
-\MSWC/
+MSWC/*
+data/*
