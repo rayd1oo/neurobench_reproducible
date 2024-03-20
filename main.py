@@ -26,6 +26,7 @@ out2pred = lambda x: torch.argmax(x, dim=-1)
 to_device = lambda x: (x[0].to(device), x[1].to(device))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device: ",device)
 
 if device == torch.device("cuda"):
     PIN_MEMORY = True
@@ -36,10 +37,10 @@ fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "data/")  # data in repo root dir
 NUM_WORKERS = 8 if device == torch.device("cuda") else 0
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 NUM_REPEATS = 1
 PRE_TRAIN = True
-NUM_SHOTS = 5
+NUM_SHOTS = 5 # How many shots to use for evaluation
 EPOCHS = 50 # if pre-training from scratch
 
 # Define MFCC pre-processing
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
         # Using same parameters as provided pre-trained models
-        model = TCN(1, -1, [25] * 8, [5] * 4 + [7] * 4).to(device)
+        model = TCN(20, 200, [256] * 8, [4] * 4 + [2] * 4).to(device)
 
         pre_train(model)
 
