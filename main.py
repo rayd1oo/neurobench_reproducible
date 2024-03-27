@@ -26,7 +26,7 @@ out2pred = lambda x: torch.argmax(x, dim=-1)
 to_device = lambda x: (x[0].to(device), x[1].to(device))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Device: ",device)
+# print("Device: ",device)
 
 if device == torch.device("cuda"):
     PIN_MEMORY = True
@@ -64,31 +64,30 @@ encode = MFCCPreProcessor(
     device = device
     )
 
-
-def test(test_model, mask, set=None):
-    test_model.eval()
-
-    if set is not None:
-        test_loader = DataLoader(set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
-    else:
-        base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
-        test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+def test(test_model, mask, test_loader=None):
+    test_model.eval()    
 
     out_mask = lambda x: x - mask
 
-    benchmark = Benchmark(TorchModel(test_model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
+    test_accuracy = 0
+    with torch.no_grad():
+        benchmark = Benchmark(TorchModel(test_model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
                           preprocessors=[to_device, encode, squeeze],
                           postprocessors=[out_mask, out2pred, torch.squeeze])
 
-    pre_train_results = benchmark.run()
-    test_accuracy = pre_train_results['classification_accuracy']
-
+    
+        pre_train_results = benchmark.run()
+        test_accuracy = pre_train_results['classification_accuracy']
+ 
     return test_accuracy
 
 
 def pre_train(model):
     base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
     pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY)
+    base_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
+    test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
 
     mask = torch.full((200,), float('inf')).to(device)
     mask[torch.arange(0,100, dtype=int)] = 0
@@ -118,8 +117,8 @@ def pre_train(model):
             optimizer.step()
 
         if epoch % 5 == 0:
-            train_acc = test(model, mask, set=base_train_set)
-            test_acc = test(model, mask)
+            train_acc = test(model, mask, test_loader=base_train_loader)
+            test_acc = test(model, mask, test_loader=test_loader)
 
             print(f"The train accuracy is {train_acc*100}%")
             print(f"The test accuracy is {test_acc*100}%")
@@ -134,7 +133,7 @@ if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
         # Using same parameters as provided pre-trained models
-        model = TCN(20, 200, [256] * 8, [4] * 4 + [2] * 4).to(device)
+        model = TCN(20, 200, [64] * 8, [4] * 4 + [2] * 4).to(device)
 
         pre_train(model)
 
