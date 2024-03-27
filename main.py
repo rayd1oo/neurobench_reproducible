@@ -36,7 +36,7 @@ else:
 fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "data/")  # data in repo root dir
-NUM_WORKERS = 2 if device == torch.device("cuda") else 0
+NUM_WORKERS = 16 if device == torch.device("cuda") else 0
 BATCH_SIZE = 128
 NUM_REPEATS = 1
 PRE_TRAIN = True
@@ -64,23 +64,24 @@ encode = MFCCPreProcessor(
     device = device
     )
 
-def test(test_model, mask, test_loader=None):
-    test_model.eval()    
+def test(test_model, mask, Test, len_Test):
+    print("Benchmark")
+    test_model.eval()
+    """Evaluate accuracy of a model on the given data set."""
 
-    out_mask = lambda x: x - mask
+    # init
+    acc_sum = torch.tensor([0], dtype=torch.float32, device=device)
+    n = 0
 
-    test_accuracy = 0
-    with torch.no_grad():
-        benchmark = Benchmark(TorchModel(test_model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
-                          preprocessors=[to_device, encode, squeeze],
-                          postprocessors=[out_mask, out2pred, torch.squeeze])
-
-    
-        pre_train_results = benchmark.run()
-        test_accuracy = pre_train_results['classification_accuracy']
- 
-    return test_accuracy
-
+    for _, (X, y) in tqdm(enumerate(Test), total=len_Test//BATCH_SIZE):
+        # Copy the data to device.
+        X, y = X.to(device), y.to(device)
+        X, y = encode((X, y))
+        with torch.no_grad():
+            y = y.long()
+            acc_sum += torch.sum((torch.argmax(test_model(X.squeeze()), dim=1) == y))
+            n += y.shape[0]  # increases with the number of samples in the batch
+    return acc_sum.item() / n
 
 def pre_train(model):
     base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
@@ -117,8 +118,8 @@ def pre_train(model):
             optimizer.step()
 
         if epoch % 5 == 0:
-            train_acc = test(model, mask, test_loader=base_train_loader)
-            test_acc = test(model, mask, test_loader=test_loader)
+            train_acc = test(model, mask, base_train_loader, len(base_train_set))
+            test_acc = test(model, mask, test_loader, len(base_test_set))
 
             print(f"The train accuracy is {train_acc*100}%")
             print(f"The test accuracy is {test_acc*100}%")
