@@ -36,7 +36,7 @@ else:
 fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "data/")  # data in repo root dir
-NUM_WORKERS = 8 if device == torch.device("cuda") else 0
+NUM_WORKERS = 2 if device == torch.device("cuda") else 0
 BATCH_SIZE = 128
 NUM_REPEATS = 1
 PRE_TRAIN = True
@@ -84,10 +84,10 @@ def test(test_model, mask, test_loader=None):
 
 def pre_train(model):
     base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
-    pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY)
-    base_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY, prefetch_factor=4)
+    base_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=4)
     base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
-    test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=4)
 
     mask = torch.full((200,), float('inf')).to(device)
     mask[torch.arange(0,100, dtype=int)] = 0
