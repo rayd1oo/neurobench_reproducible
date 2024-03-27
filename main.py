@@ -36,7 +36,7 @@ fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "../../../data/")  # data in repo root dir
 NUM_WORKERS = 8 if device == torch.device("cuda") else 0
-BATCH_SIZE = 256
+BATCH_SIZE = 64
 NUM_REPEATS = 1
 PRE_TRAIN = True
 NUM_SHOTS = 5
@@ -45,7 +45,7 @@ EPOCHS = 50 # if pre-training from scratch
 # Define MFCC pre-processing
 n_fft = 512
 win_length = None
-hop_length = 240
+hop_length = 120
 n_mels = 20
 n_mfcc = 20
 
@@ -64,23 +64,18 @@ encode = MFCCPreProcessor(
     )
 
 
-def test(test_model, mask, set=None):
+def test(test_model, mask, Test):
     test_model.eval()
-
-    if set is not None:
-        test_loader = DataLoader(set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
-    else:
-        base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
-        test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    test_loader = Test
 
     out_mask = lambda x: x - mask
+    with torch.no_grad():
+        benchmark = Benchmark(TorchModel(test_model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
+                            preprocessors=[to_device, encode, squeeze],
+                            postprocessors=[out_mask, out2pred, torch.squeeze])
 
-    benchmark = Benchmark(TorchModel(test_model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
-                          preprocessors=[to_device, encode, squeeze],
-                          postprocessors=[out_mask, out2pred, torch.squeeze])
-
-    pre_train_results = benchmark.run()
-    test_accuracy = pre_train_results['classification_accuracy']
+        pre_train_results = benchmark.run()
+        test_accuracy = pre_train_results['classification_accuracy']
 
     return test_accuracy
 
@@ -88,6 +83,9 @@ def test(test_model, mask, set=None):
 def pre_train(model):
     base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
     pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY)
+    test1 = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
+    test2 = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
 
     mask = torch.full((200,), float('inf')).to(device)
     mask[torch.arange(0,100, dtype=int)] = 0
@@ -106,8 +104,12 @@ def pre_train(model):
             data = data.to(device)
             target = target.to(device)
 
+            # print(data.shape, target.shape)
+
             # apply transform and model on whole batch directly on device
-            data, target = encode((data,target))
+            data, target = encode((data, target))
+            # print(data.shape, target.shape)
+
             output = model(data.squeeze())
 
             loss = F.cross_entropy(output.squeeze(), target)
@@ -117,8 +119,8 @@ def pre_train(model):
             optimizer.step()
 
         if epoch % 5 == 0:
-            train_acc = test(model, mask, set=base_train_set)
-            test_acc = test(model, mask)
+            train_acc = test(model, mask, test1)
+            test_acc = test(model, mask, test2)
 
             print(f"The train accuracy is {train_acc*100}%")
             print(f"The test accuracy is {test_acc*100}%")
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
         # Using same parameters as provided pre-trained models
-        model = TCN(1, -1, [25] * 8, [5] * 4 + [7] * 4).to(device)
+        model = TCN(20, 200, [16] * 2, [5] * 1 + [7] * 1).to(device)
 
         pre_train(model)
 
