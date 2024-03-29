@@ -27,7 +27,7 @@ out2pred = lambda x: torch.argmax(x, dim=-1)
 to_device = lambda x: (x[0].to(device), x[1].to(device))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print("Device: ",device)
+print("Device: ",device)
 
 if device == torch.device("cuda"):
     PIN_MEMORY = True
