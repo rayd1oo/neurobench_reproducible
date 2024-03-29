@@ -133,7 +133,7 @@ def pre_train(model):
 if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
-        receptive_field = stats.get_receptive_field_size(16, 24)
+        receptive_field = stats.get_receptive_field_size(4, 8)
         print(receptive_field)
         configuration = stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
         print(configuration)
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             print("Receptive field is too small for the task")
         else:
             # Using same parameters as provided pre-trained models
-            model = TCN(20, 200, [256] * 24, [16] * 24).to(device)
+            model = TCN(20, 200, [256] * 8, [8] * 8, batch_norm=True, weight_norm=True).to(device)
 
             pre_train(model)
 
