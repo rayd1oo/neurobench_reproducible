@@ -3,7 +3,7 @@ import json
 
 import numpy as np
 
-import tcn_lib
+from tcn_lib import stats
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -39,7 +39,6 @@ MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "data/")  # data in repo root dir
 NUM_WORKERS = 16 if device == torch.device("cuda") else 0
 BATCH_SIZE = 256
-NUM_REPEATS = 1
 PRE_TRAIN = True
 NUM_SHOTS = 5 # How many shots to use for evaluation
 EPOCHS = 50 # if pre-training from scratch
@@ -80,7 +79,7 @@ def test(test_model, mask, Test, len_Test):
         X, y = encode((X, y))
         with torch.no_grad():
             y = y.long()
-            acc_sum += torch.sum((torch.argmax(test_model(X.squeeze()), dim=1) == y))
+            acc_sum += torch.sum((torch.argmax(test_model(X.squeeze()), dim=-1) == y))
             n += y.shape[0]  # increases with the number of samples in the batch
     return acc_sum.item() / n
 
@@ -134,16 +133,16 @@ def pre_train(model):
 if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
-        receptive_field = tcn_lib.stats.get_receptive_field_size(8, 4)
+        receptive_field = stats.get_receptive_field_size(16, 24)
         print(receptive_field)
-        configuration = tcn_lib.stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
+        configuration = stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
         print(configuration)
 
         if receptive_field < 201:
             print("Receptive field is too small for the task")
         else:
             # Using same parameters as provided pre-trained models
-            model = TCN(20, 200, [64] * 8, [4] * 4 + [2] * 4).to(device)
+            model = TCN(20, 200, [256] * 24, [16] * 24).to(device)
 
             pre_train(model)
 
