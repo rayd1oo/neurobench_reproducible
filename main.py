@@ -3,6 +3,7 @@ import json
 
 import numpy as np
 
+import tcn_lib
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -133,9 +134,17 @@ def pre_train(model):
 if __name__ == '__main__':
     print(fscil_directory)
     if PRE_TRAIN:
-        # Using same parameters as provided pre-trained models
-        model = TCN(20, 200, [64] * 8, [4] * 4 + [2] * 4).to(device)
+        receptive_field = tcn_lib.stats.get_receptive_field_size(8, 4)
+        print(receptive_field)
+        configuration = tcn_lib.stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
+        print(configuration)
 
-        pre_train(model)
+        if receptive_field < 201:
+            print("Receptive field is too small for the task")
+        else:
+            # Using same parameters as provided pre-trained models
+            model = TCN(20, 200, [64] * 8, [4] * 4 + [2] * 4).to(device)
 
-        model = TorchModel(model)
+            pre_train(model)
+
+            model = TorchModel(model)
