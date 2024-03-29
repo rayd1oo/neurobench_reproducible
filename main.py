@@ -38,6 +38,7 @@ fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "data/")  # data in repo root dir
 NUM_WORKERS = 16 if device == torch.device("cuda") else 0
+PREFETCH_FACTOR = 4
 BATCH_SIZE = 256
 PRE_TRAIN = True
 NUM_SHOTS = 5 # How many shots to use for evaluation
@@ -85,10 +86,16 @@ def test(test_model, mask, Test, len_Test):
 
 def pre_train(model):
     base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
-    pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY, prefetch_factor=4)
-    base_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=4)
+    pre_train_loader = DataLoader(
+        base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, 
+        shuffle=True, pin_memory=PIN_MEMORY, prefetch_factor=PREFETCH_FACTOR)
+    base_train_loader = DataLoader(
+        base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, 
+        pin_memory=PIN_MEMORY, prefetch_factor=PREFETCH_FACTOR)
     base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
-    test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=4)
+    test_loader = DataLoader(
+        base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY, prefetch_factor=PREFETCH_FACTOR)
 
     mask = torch.full((200,), float('inf')).to(device)
     mask[torch.arange(0,100, dtype=int)] = 0
@@ -136,13 +143,13 @@ if __name__ == '__main__':
         receptive_field = stats.get_receptive_field_size(16, 24)
         print(receptive_field)
         configuration = stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
-        print(configuration)
+        print(f"configuration = {configuration}")
 
         if receptive_field < 201:
             print("Receptive field is too small for the task")
         else:
             # Using same parameters as provided pre-trained models
-            model = TCN(20, 200, [256] * 24, [16] * 24).to(device)
+            model = TCN(20, 200, [256] * 8, [10] * 8).to(device)
 
             pre_train(model)
 
