@@ -75,7 +75,7 @@ class NeuroTester:
         return self.is_neurobench_used
     
     def diy_test(self, mask, loader, dataset):
-        print("Benchmark")
+        print("Running Benchmark")
         self.model.eval()
         """Evaluate accuracy of a model on the given data set."""
 
@@ -108,9 +108,9 @@ class NeuroTester:
     
     def test(self, mask, loader, dataset):
         if self.neurobench_on:
-            self.neurobench(mask, loader, dataset)
+            return self.neurobench(mask, loader, dataset)
         else:
-            self.diy_test(mask, loader, dataset)
+            return self.diy_test(mask, loader, dataset)
 
     def load(self, model):
         state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, "mswc_rsnn_proto"),
