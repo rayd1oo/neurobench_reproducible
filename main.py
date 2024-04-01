@@ -44,6 +44,7 @@ BATCH_SIZE = 256
 PRE_TRAIN = True
 NUM_SHOTS = 5 # How many shots to use for evaluation
 EPOCHS = 50 # if pre-training from scratch
+NUM_REPEATS = 1
 
 # Define MFCC pre-processing
 n_fft = 512
@@ -70,6 +71,7 @@ class NeuroTester:
             )
         self.model_name = model_name
         self.model = model
+        self.optimizer = None
         self.is_neurobench_used = True
         self.meta = {
             "best_epoch": None,
@@ -119,19 +121,18 @@ class NeuroTester:
         else:
             return self.diy_test(mask, loader, dataset)
 
-    def load(self, model):
-        state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, "mswc_rsnn_proto"),
-                            map_location=device)
+    def load(self, model) -> None:
+        state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, f"model_{self.model_name}"),
+                                map_location=device).get("model")
         model.load_state_dict(state_dict)
 
-        return model
-
-    def save(self, model, filename, meta) -> None:
+    def save(self, model, optimizer, filename, meta) -> None:
         if not os.path.exists(MODEL_SAVE_DIR):
             # Create the directory if it doesn't exist
             os.makedirs(MODEL_SAVE_DIR)
         torch.save({
                 'model': model.state_dict(),
+                'optmizer': optimizer,
                 'meta': meta
                 }, os.path.join(MODEL_SAVE_DIR, filename))
 
@@ -147,8 +148,8 @@ class NeuroTester:
 
         lr = 0.01
 
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=0.0001)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=0.0001)
+        scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=20, gamma=0.1)
 
         for epoch in range(EPOCHS):
             print(f"Epoch: {epoch+1}")
@@ -165,9 +166,9 @@ class NeuroTester:
 
                 loss = F.cross_entropy(output.squeeze(), target)
 
-                optimizer.zero_grad()
+                self.optimizer.zero_grad()
                 loss.backward()
-                optimizer.step()
+                self.optimizer.step()
 
             if epoch % 5 == 0:
                 train_acc = self.test(mask=mask, loader=base_train_loader, dataset=base_train_set)
@@ -182,21 +183,34 @@ class NeuroTester:
                     self.meta["best_test_acc"] = test_acc
                     self.meta["save_time"] = current_time
 
-                    filename = f"model_{self.model_name}_best.pth"
-                    self.save(
-                        model=self.model,
-                        filename=filename,
-                        meta=self.meta)
-                    print(f"{filename} saved...")
+                    # filename = "pre_trained_model"
+                    # self.save(
+                    #     model=self.model,
+                    #     optimizer=self.optimizer,
+                    #     filename=filename,
+                    #     meta=self.meta)
+                    # print(f"{filename} saved...")
 
                 print(f"The train accuracy is {train_acc*100}%")
                 print(f"The test accuracy is {test_acc*100}%")
 
             scheduler.step()
 
+        filename = f"model_{self.model_name}"
+        self.save(
+            model=self.model,
+            optimizer=self.optimizer,
+            filename=filename,
+            meta=self.meta)
+        print(f"{filename} saved...")
+
         del base_train_set
         del pre_train_loader
     
+
+    def incremental_learn(self, model) -> None:
+        pass
+
     def run(self) -> None:
         if PRE_TRAIN:
             receptive_field = stats.get_receptive_field_size(16, 24)
@@ -208,11 +222,12 @@ class NeuroTester:
                 print("Receptive field is too small for the task")
             else:
                 self.pre_train()
-                model = TorchModel(self.model)
+            return
         
-        else:
-            pass
-
+        # incremental learn
+        # self.load(self.model)
+        # self.incremental_learn(TorchModel(self.model))
+    
 
 if __name__ == '__main__':
     print(fscil_directory)
@@ -222,4 +237,5 @@ if __name__ == '__main__':
         batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
     bench = NeuroTester(model, model.__class__.__name__)
     # bench.is_neurobench_used = False
+    # PRE_TRAIN = False
     bench.run()
