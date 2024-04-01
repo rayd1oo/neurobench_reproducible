@@ -74,7 +74,7 @@ class NeuroTester:
     def neurobench_on(self) -> bool:
         return self.is_neurobench_used
     
-    def diy_test(self, mask, Test):
+    def diy_test(self, mask, test_loader, test_set):
         print("Benchmark")
         self.model.eval()
         """Evaluate accuracy of a model on the given data set."""
@@ -83,7 +83,7 @@ class NeuroTester:
         acc_sum = torch.tensor([0], dtype=torch.float32, device=device)
         n = 0
 
-        for _, (X, y) in tqdm(enumerate(Test), total=len(Test)//BATCH_SIZE):
+        for _, (X, y) in tqdm(enumerate(test_loader), total=len(test_set)//BATCH_SIZE):
             # Copy the data to device.
             X, y = X.to(device), y.to(device)
             X, y = self.encode((X, y))
@@ -94,10 +94,8 @@ class NeuroTester:
         print(acc_sum)
         return acc_sum.item() / n
     
-    def neurobench(self, mask, Test):
+    def neurobench(self, mask, test_loader, test_set):
         self.model.eval()
-        test_loader = Test
-
         out_mask = lambda x: x - mask
         with torch.no_grad():
             benchmark = Benchmark(TorchModel(self.model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
@@ -109,11 +107,11 @@ class NeuroTester:
 
         return test_accuracy
     
-    def test(self, mask, Test):
+    def test(self, mask, test_loader, test_set):
         if self.neurobench_on:
-            self.neurobench(mask, Test)
+            self.neurobench(mask, test_loader, test_set)
         else:
-            self.diy_test(mask, Test)
+            self.diy_test(mask, test_loader, test_set)
 
     def load(self, model):
         state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, "mswc_rsnn_proto"),
@@ -164,8 +162,8 @@ class NeuroTester:
                 optimizer.step()
 
             if epoch % 5 == 0:
-                train_acc = self.test(mask, base_train_loader)
-                test_acc = self.test(mask, test_loader)
+                train_acc = self.test(mask, base_train_loader, base_train_set)
+                test_acc = self.test(mask, test_loader, base_test_set)
 
                 print(f"The train accuracy is {train_acc*100}%")
                 print(f"The test accuracy is {test_acc*100}%")
@@ -199,5 +197,5 @@ if __name__ == '__main__':
         20, 200, [256] * 6, [3] * 6,
         batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
     bench = NeuroTester(model)
-    # bench.is_neurobench_used = False
+    bench.is_neurobench_used = False
     bench.run()
