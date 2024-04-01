@@ -54,7 +54,7 @@ n_mfcc = 20
 
 
 class NeuroTester:
-    def __init__(self, model) -> None:
+    def __init__(self, model, model_name) -> None:
         self.encode = MFCCPreProcessor(
             sample_rate=48000,
             n_mfcc=n_mfcc,
@@ -68,18 +68,20 @@ class NeuroTester:
             },
             device = device
             )
+        self.model_name = model_name
         self.model = model
         self.is_neurobench_used = True
-        self.meta = dict()
-        self.best_epoch = None
-        self.best_train_acc = 0
-        self.best_test_acc = 0
+        self.meta = {
+            "best_epoch": None,
+            "best_train_acc": 0,
+            "best_test_acc": 0,
+        }
     
     @property
     def neurobench_on(self) -> bool:
         return self.is_neurobench_used
     
-    def diy_test(self, mask, loader, dataset):
+    def diy_test(self, mask, loader, dataset) -> float:
         print("Running Benchmark")
         self.model.eval()
         """Evaluate accuracy of a model on the given data set."""
@@ -98,7 +100,7 @@ class NeuroTester:
                 n += y.shape[0]  # increases with the number of samples in the batch
         return acc_sum.item() / n
     
-    def neurobench(self, mask, loader, dataset):
+    def neurobench(self, mask, loader, dataset) -> float:
         self.model.eval()
         out_mask = lambda x: x - mask
         with torch.no_grad():
@@ -111,7 +113,7 @@ class NeuroTester:
 
         return test_accuracy
     
-    def test(self, mask, loader, dataset):
+    def test(self, mask, loader, dataset) -> float:
         if self.neurobench_on:
             return self.neurobench(mask, loader, dataset)
         else:
@@ -124,7 +126,10 @@ class NeuroTester:
 
         return model
 
-    def save(self, model, filename, meta):
+    def save(self, model, filename, meta) -> None:
+        if not os.path.exists(MODEL_SAVE_DIR):
+            # Create the directory if it doesn't exist
+            os.makedirs(MODEL_SAVE_DIR)
         torch.save({
                 'model': model.state_dict(),
                 'meta': meta
@@ -165,17 +170,24 @@ class NeuroTester:
                 optimizer.step()
 
             if epoch % 5 == 0:
-                train_acc = self.test(mask, base_train_loader, base_train_set)
-                test_acc = self.test(mask, test_loader, base_test_set)
+                train_acc = self.test(mask=mask, loader=base_train_loader, dataset=base_train_set)
+                test_acc = self.test(mask=mask, loader=test_loader, dataset=base_test_set)
 
-                if test_acc > self.best_test_acc:
-                    self.best_epoch = epoch+1
-                    self.best_train_acc = train_acc
-                    self.best_test_acc = test_acc
-                
-                if (test_acc > self.best_test_acc) and (abs(test_acc - self.best_test_acc) > 1e-6):
-                    self.save(self.model, f"model_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}", self.meta)
-                
+                if (test_acc > self.meta["best_test_acc"]) and \
+                    (abs(test_acc - self.meta["best_test_acc"]) > 1e-6):
+                    current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+                    self.meta["epoch"] = epoch+1
+                    self.meta["best_train_acc"] = train_acc
+                    self.meta["best_test_acc"] = test_acc
+                    self.meta["save_time"] = current_time
+
+                    filename = f"model_{self.model_name}_best.pth"
+                    self.save(
+                        model=self.model,
+                        filename=filename,
+                        meta=self.meta)
+                    print(f"{filename} saved...")
 
                 print(f"The train accuracy is {train_acc*100}%")
                 print(f"The test accuracy is {test_acc*100}%")
@@ -185,7 +197,7 @@ class NeuroTester:
         del base_train_set
         del pre_train_loader
     
-    def run(self):
+    def run(self) -> None:
         if PRE_TRAIN:
             receptive_field = stats.get_receptive_field_size(16, 24)
             print(receptive_field)
@@ -208,6 +220,6 @@ if __name__ == '__main__':
     model = TCN(
         20, 200, [256] * 6, [3] * 6,
         batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
-    bench = NeuroTester(model)
+    bench = NeuroTester(model, model.__class__.__name__)
     bench.is_neurobench_used = False
     bench.run()
