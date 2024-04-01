@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 import numpy as np
 
@@ -69,6 +70,10 @@ class NeuroTester:
             )
         self.model = model
         self.is_neurobench_used = True
+        self.meta = dict()
+        self.best_epoch = None
+        self.best_train_acc = 0
+        self.best_test_acc = 0
     
     @property
     def neurobench_on(self) -> bool:
@@ -119,12 +124,11 @@ class NeuroTester:
 
         return model
 
-    def save(self, model, filename, optimizer, meta):
+    def save(self, model, filename, meta):
         torch.save({
                 'model': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
                 'meta': meta
-                }, filename)
+                }, os.path.join(MODEL_SAVE_DIR, filename))
 
     def pre_train(self):
         base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
@@ -163,6 +167,15 @@ class NeuroTester:
             if epoch % 5 == 0:
                 train_acc = self.test(mask, base_train_loader, base_train_set)
                 test_acc = self.test(mask, test_loader, base_test_set)
+
+                if test_acc > self.best_test_acc:
+                    self.best_epoch = epoch+1
+                    self.best_train_acc = train_acc
+                    self.best_test_acc = test_acc
+                
+                if (test_acc > self.best_test_acc) and (abs(test_acc - self.best_test_acc) > 1e-6):
+                    self.save(self.model, f"model_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}", self.meta)
+                
 
                 print(f"The train accuracy is {train_acc*100}%")
                 print(f"The test accuracy is {test_acc*100}%")
