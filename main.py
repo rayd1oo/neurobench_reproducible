@@ -74,7 +74,7 @@ class NeuroTester:
     def neurobench_on(self) -> bool:
         return self.is_neurobench_used
     
-    def diy_test(self, mask, test_loader, test_set):
+    def diy_test(self, mask, loader, dataset):
         print("Benchmark")
         self.model.eval()
         """Evaluate accuracy of a model on the given data set."""
@@ -83,7 +83,7 @@ class NeuroTester:
         acc_sum = torch.tensor([0], dtype=torch.float32, device=device)
         n = 0
 
-        for _, (X, y) in tqdm(enumerate(test_loader), total=len(test_set)//BATCH_SIZE):
+        for _, (X, y) in tqdm(enumerate(loader), total=len(dataset)//BATCH_SIZE):
             # Copy the data to device.
             X, y = X.to(device), y.to(device)
             X, y = self.encode((X, y))
@@ -91,14 +91,13 @@ class NeuroTester:
                 y = y.long()
                 acc_sum += torch.sum((torch.argmax(self.model(X.squeeze()), dim=-1) == y))
                 n += y.shape[0]  # increases with the number of samples in the batch
-        print(acc_sum)
         return acc_sum.item() / n
     
-    def neurobench(self, mask, test_loader, test_set):
+    def neurobench(self, mask, loader, dataset):
         self.model.eval()
         out_mask = lambda x: x - mask
         with torch.no_grad():
-            benchmark = Benchmark(TorchModel(self.model), metric_list=[[], ["classification_accuracy"]], dataloader=test_loader,
+            benchmark = Benchmark(TorchModel(self.model), metric_list=[[], ["classification_accuracy"]], dataloader=loader,
                                 preprocessors=[to_device, self.encode, squeeze],
                                 postprocessors=[out_mask, out2pred, torch.squeeze])
 
@@ -107,11 +106,11 @@ class NeuroTester:
 
         return test_accuracy
     
-    def test(self, mask, test_loader, test_set):
+    def test(self, mask, loader, dataset):
         if self.neurobench_on:
-            self.neurobench(mask, test_loader, test_set)
+            self.neurobench(mask, loader, dataset)
         else:
-            self.diy_test(mask, test_loader, test_set)
+            self.diy_test(mask, loader, dataset)
 
     def load(self, model):
         state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, "mswc_rsnn_proto"),
