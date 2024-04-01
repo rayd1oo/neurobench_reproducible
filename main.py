@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 import numpy as np
 
@@ -27,7 +28,7 @@ out2pred = lambda x: torch.argmax(x, dim=-1)
 to_device = lambda x: (x[0].to(device), x[1].to(device))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print("Device: ",device)
+print("Device: ",device)
 
 if device == torch.device("cuda"):
     PIN_MEMORY = True
@@ -38,6 +39,7 @@ fscil_directory = os.path.dirname(os.path.abspath(__file__))
 MODEL_SAVE_DIR = os.path.join(fscil_directory, "model_data/")
 ROOT = os.path.join(fscil_directory, "data/")  # data in repo root dir
 NUM_WORKERS = 16 if device == torch.device("cuda") else 0
+PREFETCH_FACTOR = 4
 BATCH_SIZE = 256
 PRE_TRAIN = True
 NUM_SHOTS = 5 # How many shots to use for evaluation
@@ -50,100 +52,174 @@ hop_length = 240
 n_mels = 20
 n_mfcc = 20
 
-encode = MFCCPreProcessor(
-    sample_rate=48000,
-    n_mfcc=n_mfcc,
-    melkwargs={
-        "n_fft": n_fft,
-        "n_mels": n_mels,
-        "hop_length": hop_length,
-        "mel_scale": "htk",
-        "f_min": 20,
-        "f_max": 4000,
-    },
-    device = device
-    )
 
-def test(test_model, mask, Test, len_Test):
-    print("Benchmark")
-    test_model.eval()
-    """Evaluate accuracy of a model on the given data set."""
+class NeuroTester:
+    def __init__(self, model, model_name) -> None:
+        self.encode = MFCCPreProcessor(
+            sample_rate=48000,
+            n_mfcc=n_mfcc,
+            melkwargs={
+                "n_fft": n_fft,
+                "n_mels": n_mels,
+                "hop_length": hop_length,
+                "mel_scale": "htk",
+                "f_min": 20,
+                "f_max": 4000,
+            },
+            device = device
+            )
+        self.model_name = model_name
+        self.model = model
+        self.is_neurobench_used = True
+        self.meta = {
+            "best_epoch": None,
+            "best_train_acc": 0,
+            "best_test_acc": 0,
+        }
+    
+    @property
+    def neurobench_on(self) -> bool:
+        return self.is_neurobench_used
+    
+    def diy_test(self, mask, loader, dataset) -> float:
+        print("Running Benchmark")
+        self.model.eval()
+        """Evaluate accuracy of a model on the given data set."""
 
-    # init
-    acc_sum = torch.tensor([0], dtype=torch.float32, device=device)
-    n = 0
+        # init
+        acc_sum = torch.tensor([0], dtype=torch.float32, device=device)
+        n = 0
 
-    for _, (X, y) in tqdm(enumerate(Test), total=len_Test//BATCH_SIZE):
-        # Copy the data to device.
-        X, y = X.to(device), y.to(device)
-        X, y = encode((X, y))
+        for _, (X, y) in tqdm(enumerate(loader), total=len(dataset)//BATCH_SIZE):
+            # Copy the data to device.
+            X, y = X.to(device), y.to(device)
+            X, y = self.encode((X, y))
+            with torch.no_grad():
+                y = y.long()
+                acc_sum += torch.sum((torch.argmax(self.model(X.squeeze()), dim=-1) == y))
+                n += y.shape[0]  # increases with the number of samples in the batch
+        return acc_sum.item() / n
+    
+    def neurobench(self, mask, loader, dataset) -> float:
+        self.model.eval()
+        out_mask = lambda x: x - mask
         with torch.no_grad():
-            y = y.long()
-            acc_sum += torch.sum((torch.argmax(test_model(X.squeeze()), dim=-1) == y))
-            n += y.shape[0]  # increases with the number of samples in the batch
-    return acc_sum.item() / n
+            benchmark = Benchmark(TorchModel(self.model), metric_list=[[], ["classification_accuracy"]], dataloader=loader,
+                                preprocessors=[to_device, self.encode, squeeze],
+                                postprocessors=[out_mask, out2pred, torch.squeeze])
 
-def pre_train(model):
-    base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
-    pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY, prefetch_factor=4)
-    base_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=4)
-    base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
-    test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=4)
+            pre_train_results = benchmark.run()
+            test_accuracy = pre_train_results['classification_accuracy']
 
-    mask = torch.full((200,), float('inf')).to(device)
-    mask[torch.arange(0,100, dtype=int)] = 0
+        return test_accuracy
+    
+    def test(self, mask, loader, dataset) -> float:
+        if self.neurobench_on:
+            return self.neurobench(mask, loader, dataset)
+        else:
+            return self.diy_test(mask, loader, dataset)
 
-    lr = 0.01
+    def load(self, model):
+        state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, "mswc_rsnn_proto"),
+                            map_location=device)
+        model.load_state_dict(state_dict)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=0.0001)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
+        return model
 
-    for epoch in range(EPOCHS):
-        print(f"Epoch: {epoch+1}")
+    def save(self, model, filename, meta) -> None:
+        if not os.path.exists(MODEL_SAVE_DIR):
+            # Create the directory if it doesn't exist
+            os.makedirs(MODEL_SAVE_DIR)
+        torch.save({
+                'model': model.state_dict(),
+                'meta': meta
+                }, os.path.join(MODEL_SAVE_DIR, filename))
 
-        model.train()
+    def pre_train(self):
+        base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
+        pre_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True, pin_memory=PIN_MEMORY, prefetch_factor=PREFETCH_FACTOR)
+        base_train_loader = DataLoader(base_train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=PREFETCH_FACTOR)
+        base_test_set = MSWC(root=ROOT, subset="base", procedure="testing")
+        test_loader = DataLoader(base_test_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, prefetch_factor=PREFETCH_FACTOR)
 
-        for _, (data, target) in tqdm(enumerate(pre_train_loader), total=len(base_train_set)//BATCH_SIZE):
-            data = data.to(device)
-            target = target.to(device)
+        mask = torch.full((200,), float('inf')).to(device)
+        mask[torch.arange(0,100, dtype=int)] = 0
 
-            # apply transform and model on whole batch directly on device
-            data, target = encode((data,target))
-            output = model(data.squeeze())
+        lr = 0.01
 
-            loss = F.cross_entropy(output.squeeze(), target)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=0.0001)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        for epoch in range(EPOCHS):
+            print(f"Epoch: {epoch+1}")
 
-        if epoch % 5 == 0:
-            train_acc = test(model, mask, base_train_loader, len(base_train_set))
-            test_acc = test(model, mask, test_loader, len(base_test_set))
+            self.model.train()
 
-            print(f"The train accuracy is {train_acc*100}%")
-            print(f"The test accuracy is {test_acc*100}%")
+            for _, (data, target) in tqdm(enumerate(pre_train_loader), total=len(base_train_set)//BATCH_SIZE):
+                data = data.to(device)
+                target = target.to(device)
 
-        scheduler.step()
+                # apply transform and model on whole batch directly on device
+                data, target = self.encode((data,target))
+                output = self.model(data.squeeze())
 
-    del base_train_set
-    del pre_train_loader
+                loss = F.cross_entropy(output.squeeze(), target)
+
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            if epoch % 5 == 0:
+                train_acc = self.test(mask=mask, loader=base_train_loader, dataset=base_train_set)
+                test_acc = self.test(mask=mask, loader=test_loader, dataset=base_test_set)
+
+                if (test_acc > self.meta["best_test_acc"]) and \
+                    (abs(test_acc - self.meta["best_test_acc"]) > 1e-6):
+                    current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+                    self.meta["epoch"] = epoch+1
+                    self.meta["best_train_acc"] = train_acc
+                    self.meta["best_test_acc"] = test_acc
+                    self.meta["save_time"] = current_time
+
+                    filename = f"model_{self.model_name}_best.pth"
+                    self.save(
+                        model=self.model,
+                        filename=filename,
+                        meta=self.meta)
+                    print(f"{filename} saved...")
+
+                print(f"The train accuracy is {train_acc*100}%")
+                print(f"The test accuracy is {test_acc*100}%")
+
+            scheduler.step()
+
+        del base_train_set
+        del pre_train_loader
+    
+    def run(self) -> None:
+        if PRE_TRAIN:
+            receptive_field = stats.get_receptive_field_size(16, 24)
+            print(receptive_field)
+            configuration = stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
+            print(f"configuration = {configuration}")
+
+            if receptive_field < 201:
+                print("Receptive field is too small for the task")
+            else:
+                self.pre_train()
+                model = TorchModel(self.model)
+        
+        else:
+            pass
 
 
 if __name__ == '__main__':
     print(fscil_directory)
-    if PRE_TRAIN:
-        receptive_field = stats.get_receptive_field_size(16, 24)
-        print(receptive_field)
-        configuration = stats.get_kernel_size_and_layers(201)  ##configuration = (kernel_size, num_layers)
-        print(configuration)
-
-        if receptive_field < 201:
-            print("Receptive field is too small for the task")
-        else:
-            # Using same parameters as provided pre-trained models
-            model = TCN(20, 200, [256] * 24, [16] * 24).to(device)
-
-            pre_train(model)
-
-            model = TorchModel(model)
+    # Using same parameters as provided pre-trained models
+    model = TCN(
+        20, 200, [256] * 6, [3] * 6,
+        batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
+    bench = NeuroTester(model, model.__class__.__name__)
+    bench.is_neurobench_used = False
+    bench.run()
