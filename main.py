@@ -221,5 +221,5 @@ if __name__ == '__main__':
         20, 200, [256] * 6, [3] * 6,
         batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
     bench = NeuroTester(model, model.__class__.__name__)
-    bench.is_neurobench_used = False
+    # bench.is_neurobench_used = False
     bench.run()
