@@ -276,7 +276,7 @@ class NeuroTester:
 
             # Define benchmark object
             benchmark_all_test = Benchmark(eval_model, metric_list=[static_metrics, workload_metrics], dataloader=test_loader, 
-                                preprocessors=[to_device, encode, squeeze], postprocessors=[])
+                                preprocessors=[to_device, self.encode, squeeze], postprocessors=[])
 
             # Define specific post-processing with masking on the base classes
             mask = torch.full((200,), float('inf')).to(device)
@@ -329,12 +329,12 @@ class NeuroTester:
                 new_classes = y_shot.tolist()
                 Nways = len(y_shot) #Number of ways, should always be 10
 
-                features = eval_model.net(data, features_out=True)
+                features = eval_model.net.embedder(data)
 
                 for index, class_id in enumerate(new_classes):
                     mean = torch.sum(features[[i*Nways+index for i in range(NUM_SHOTS)]], dim=0)/NUM_SHOTS
-                    eval_model.net.output.weight.data[class_id] = 2*mean
-                    eval_model.net.output.bias.data[class_id] = -torch.matmul(mean, mean.t())
+                    eval_model.net.linear.weight.data[class_id] = 2*mean
+                    eval_model.net.linear.bias.data[class_id] = -torch.matmul(mean, mean.t())
 
                 ### Testing phase ###
                 eval_model.net.eval()
