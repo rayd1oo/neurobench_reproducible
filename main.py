@@ -19,7 +19,7 @@ from neurobench.models import TorchModel
 
 from neurobench.benchmarks import Benchmark
 from neurobench.preprocessing import MFCCPreProcessor
-
+import matplotlib.pyplot as plt
 
 from tcn_lib import TCN
 
@@ -355,7 +355,7 @@ class NeuroTester:
                 session_results = benchmark_all_test.run(dataloader = full_session_test_loader, postprocessors=[out_mask, F.softmax, out2pred, torch.squeeze])
                 print("Session results:", session_results)
 
-                eval_accs.append(session_results['classification_accuracy'])
+                eval_accs.append(session_results['classification_accuracy'])  
                 act_sparsity.append(session_results['activation_sparsity'])
                 syn_ops_dense.append(session_results['synaptic_operations']['Dense'])
                 syn_ops_macs.append(session_results['synaptic_operations']['Effective_MACs'])
@@ -384,6 +384,50 @@ class NeuroTester:
             print(f"Syn Ops Dense: {syn_ops_dense}")
             print(f"Syn Ops MACs: {syn_ops_macs}")
 
+            # Save all data in a csv file
+            print(f"Saving results")
+            results = {
+                "model": self.model_name,
+                "total mean accuracy": mean_accuracy,
+                "eval_accs": all_evals,
+                "query_accs": all_query,
+                "act_sparsity": all_act_sparsity,
+                "syn_ops_dense": all_syn_ops_dense,
+                "syn_ops_macs": all_syn_ops_macs,
+                "syn_ops_acs": all_syn_ops_acs
+            }
+            # Save results in a csv file
+            with open(f"results_{self.model_name}.json", 'w') as f:
+                json.dump(results, f)
+
+            # Plot results
+            print(f"Plotting results")
+
+            plt.figure(figsize=(12, 6))
+            plt.suptitle(f"Incremental Sessions for {self.model_name}")
+
+            # Plot All Classes Performance
+            plt.subplot(1, 2, 1)
+            plt.plot(range(11), [x*100 for x in eval_accs], label="All Classes Performance")      
+            plt.xlabel("Incremental Sessions")
+            plt.ylabel("Test Accuracy (%)")
+            plt.ylim(40, 100)
+            plt.xticks(range(0, 11, 1))
+            plt.yticks(range(40, 101, 10))
+            plt.grid(True)
+
+            # Plot New Classes Performance
+            plt.subplot(1, 2, 2)
+            plt.plot(range(1, 11), [x*100 for x in query_accs], label="New Classes Performance")
+            plt.xlabel("Incremental Sessions")
+            plt.ylabel("Test Accuracy (%)")
+            plt.ylim(40, 100)
+            plt.xticks(range(1, 11, 1))
+            plt.yticks(range(40, 101, 10))
+            plt.grid(True)
+            plt.savefig(f"results_{self.model_name}.png")
+            plt.show()
+            
     def run(self) -> None:
         if PRE_TRAIN:
             receptive_field = stats.get_receptive_field_size(16, 24)
