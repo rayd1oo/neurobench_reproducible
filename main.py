@@ -184,25 +184,27 @@ class NeuroTester:
                     self.meta["save_time"] = current_time
 
                     # filename = "pre_trained_model"
-                    # self.save(
-                    #     model=self.model,
-                    #     optimizer=self.optimizer,
-                    #     filename=filename,
-                    #     meta=self.meta)
-                    # print(f"{filename} saved...")
+                    filename = f"model_{self.model_name}"
+
+                    self.save(
+                        model=self.model,
+                        optimizer=self.optimizer,
+                        filename=filename,
+                        meta=self.meta)
+                    print(f"{filename} saved...")
 
                 print(f"The train accuracy is {train_acc*100}%")
                 print(f"The test accuracy is {test_acc*100}%")
 
             scheduler.step()
 
-        filename = f"model_{self.model_name}"
-        self.save(
-            model=self.model,
-            optimizer=self.optimizer,
-            filename=filename,
-            meta=self.meta)
-        print(f"{filename} saved...")
+        # filename = f"model_{self.model_name}"
+        # self.save(
+        #     model=self.model,
+        #     optimizer=self.optimizer,
+        #     filename=filename,
+        #     meta=self.meta)
+        # print(f"{filename} saved...")
 
         del base_train_set
         del pre_train_loader
@@ -410,9 +412,9 @@ if __name__ == '__main__':
     print(fscil_directory)
     # Using same parameters as provided pre-trained models
     model = TCN(
-        20, 200, [256] * 6, [3] * 6,
+        20, 200, [256] * 9, [4] * 9,
         batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
     bench = NeuroTester(model, model.__class__.__name__)
     # bench.is_neurobench_used = False
-    PRE_TRAIN = False
+    # PRE_TRAIN = False
     bench.run()
