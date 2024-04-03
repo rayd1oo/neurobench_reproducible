@@ -42,9 +42,8 @@ NUM_WORKERS = 16 if device == torch.device("cuda") else 0
 PREFETCH_FACTOR = 4
 BATCH_SIZE = 256
 PRE_TRAIN = True
-NUM_REPEATS = 1
 NUM_SHOTS = 5 # How many shots to use for evaluation
-EPOCHS = 50 # if pre-training from scratch
+EPOCHS = 11 # if pre-training from scratch
 NUM_REPEATS = 1
 
 # Define MFCC pre-processing
@@ -198,14 +197,6 @@ class NeuroTester:
                 print(f"The test accuracy is {test_acc*100}%")
 
             scheduler.step()
-
-        # filename = f"model_{self.model_name}"
-        # self.save(
-        #     model=self.model,
-        #     optimizer=self.optimizer,
-        #     filename=filename,
-        #     meta=self.meta)
-        # print(f"{filename} saved...")
 
         del base_train_set
         del pre_train_loader
@@ -400,10 +391,10 @@ class NeuroTester:
 
             if receptive_field < 201:
                 print("Receptive field is too small for the task")
+                return
             else:
                 self.pre_train()
-            return
-        
+            
         # incremental learn
         self.load(self.model)
         self.incremental_learn(TorchModel(self.model))
@@ -413,7 +404,7 @@ if __name__ == '__main__':
     print(fscil_directory)
     # Using same parameters as provided pre-trained models
     model = TCN(
-        20, 200, [256] * 9, [4] * 9,
+        20, 200, [256] * 4, [9] * 4,
         batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
     bench = NeuroTester(model, model.__class__.__name__)
     # bench.is_neurobench_used = False
