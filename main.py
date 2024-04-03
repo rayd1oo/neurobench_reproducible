@@ -43,7 +43,7 @@ PREFETCH_FACTOR = 4
 BATCH_SIZE = 256
 PRE_TRAIN = True
 NUM_SHOTS = 5 # How many shots to use for evaluation
-EPOCHS = 11 # if pre-training from scratch
+EPOCHS = 51 # if pre-training from scratch
 NUM_REPEATS = 1
 
 # Define MFCC pre-processing
@@ -408,6 +408,7 @@ class NeuroTester:
 
             # Plot All Classes Performance
             plt.subplot(1, 2, 1)
+            plt.title("All Classes Performance")
             plt.plot(range(11), [x*100 for x in eval_accs], label="All Classes Performance")      
             plt.xlabel("Incremental Sessions")
             plt.ylabel("Test Accuracy (%)")
@@ -418,6 +419,7 @@ class NeuroTester:
 
             # Plot New Classes Performance
             plt.subplot(1, 2, 2)
+            plt.title("New Classes Performance")
             plt.plot(range(1, 11), [x*100 for x in query_accs], label="New Classes Performance")
             plt.xlabel("Incremental Sessions")
             plt.ylabel("Test Accuracy (%)")
@@ -425,6 +427,7 @@ class NeuroTester:
             plt.xticks(range(1, 11, 1))
             plt.yticks(range(40, 101, 10))
             plt.grid(True)
+
             plt.savefig(f"results_{self.model_name}.png")
             plt.show()
             
