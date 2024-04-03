@@ -125,6 +125,7 @@ class NeuroTester:
         state_dict = torch.load(os.path.join(MODEL_SAVE_DIR, f"model_{self.model_name}"),
                                 map_location=device).get("model")
         model.load_state_dict(state_dict)
+        print("Model loaded from ", os.path.join(MODEL_SAVE_DIR, f"model_{self.model_name}"))
 
     def save(self, model, optimizer, filename, meta) -> None:
         if not os.path.exists(MODEL_SAVE_DIR):
@@ -217,9 +218,10 @@ class NeuroTester:
         base_train_set = MSWC(root=ROOT, subset="base", procedure="training")
         train_loader = DataLoader(base_train_set, batch_size=500, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
 
+        # print("Model:\n", model.net.linear)
         # Set-up new proto readout layer
-        output = model.net.output
-        proto_out = nn.Linear(512, 200, bias=True).to(device)
+        output = model.net.linear
+        proto_out = nn.Linear(256, 200, bias=True).to(device)
         proto_out.weight.data = output.weight.data
 
         # Compute prototype weights for base classes
@@ -229,7 +231,7 @@ class NeuroTester:
             data = data.squeeze()
             class_id = target[0]
 
-            features = model.net(data, features_out=True)
+            features = model.net.embedder(data)
 
             mean = torch.sum(features, dim=0)/500
             proto_out.weight.data[class_id] = 2*mean
@@ -240,7 +242,7 @@ class NeuroTester:
             del mean
 
         # Replace pre-trained readout with prototypical layer
-        model.net.output = proto_out
+        model.net.linear = proto_out
 
         del base_train_set
         del train_loader
@@ -405,8 +407,8 @@ if __name__ == '__main__':
     # Using same parameters as provided pre-trained models
     model = TCN(
         20, 200, [256] * 4, [9] * 4,
-        batch_norm=True, weight_norm=True, dropout=0.1, groups=-1, bottleneck=True).to(device)
+        batch_norm=True, dropout=0.1).to(device)
     bench = NeuroTester(model, model.__class__.__name__)
     # bench.is_neurobench_used = False
-    # PRE_TRAIN = False
+    PRE_TRAIN = False
     bench.run()
