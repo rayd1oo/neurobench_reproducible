@@ -8,5 +8,3 @@ using this version if memory leak occured during benchmarking, please note make 
 ```shell
 pip install git+https://github.com/NeuroBench/neurobench.git@main
 ```
-
-## Introduction
