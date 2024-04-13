@@ -1,4 +1,4 @@
-# neurobench_reproducible blog requirements
+# neurobench reproducible blog
 
 ## Introduction
 
