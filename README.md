@@ -9,6 +9,8 @@ Recent years, the need for an evaluating system like NeuroBench in neuromorphic 
   
 In our reproducibility project, we mainly used 4 criteria to reproduce the paper: **Reproduced**, **Hyperparams check**, **New algorithm variant**, **New code variant**. We first used the existing M5 ANN codes on the github website of NeuroBench to evaluate the proposed benchmark - Keyword Few-Shot Class-Incremental Learning (FSCIL). Then we substituted the ANN with a new algorithm, TCN, to check the generalizability of the benchmark. After that, we tuned the hyperparams of the network and changed the benchmark metrics with our own testing function to evaluate the results. During the course of the project, we also found a memory overflow problem in the codes which is provided by the authors of the article. We reflected it to the authors and had the bug get fixed.
 
+The project team engaged in a collaborative problem-solving process to identify and address the key challenges associated with the source codes and the variant codes. Through a joint effort, the team was able to effectively define and tackle the reporduction and the new algorithm and code variation.
+
 
 # Reproduced
 ## a.	NeuroBench
