@@ -1,7 +1,9 @@
 # neurobench_reproducible
 
-this repository contains the reproducible project for CS4240 group 40, the paper being reproduced is [NeuroBench: A Framework for Benchmarking
+This repository contains the reproducible project for CS4240 group 40, the paper being reproduced is [NeuroBench: A Framework for Benchmarking
 Neuromorphic Computing Algorithms and Systems](https://arxiv.org/abs/2304.04640)
+
+# NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems
 
 Recent years, the need for an evaluating system like NeuroBench in neuromorphic computing arises from the lack of standardized benchmarks in the field, making it challenging to accurately measure technological advancements, compare performance with conventional methods, and identify promising future research directions. In this blog, a new evaluation system for neuromorphic computing algorithms, NeuroBench, is introduced. We aim to provide the reader with a clear picture of the function of NeuroBench by explaining the structure of it, testing its efficiency on M5 Artificial Neural Network (M5 ANN) and Temporal Convolutional Network (TCN), and analyzing its advantages towards traditional evaluation metrics. 
   
@@ -12,7 +14,7 @@ In our reproducibility project, we mainly used 4 criteria to reproduce the paper
 ## a.	NeuroBench
 NeuroBench is a benchmark framework designed for evaluating neuromorphic computing algorithms and systems, aiming to standardize the assessment of neuromorphic approaches in both hardware-independent and hardware-dependent settings. The advantages of NeuroBench lie in its inclusive and systematic methodology, providing a common set of tools for benchmark measurement that allows for objective comparisons between different neuromorphic models. By offering a structured framework for evaluation, NeuroBench facilitates the measurement of performance, enables comparisons with conventional methods, and helps identify promising research directions in the field of neuromorphic computing.
 
-
+ ![Image 1](111.png)
 **Figure 1. Two main tracks of NeuroBench [1]**
 
 The structure of NeuroBench, as depicted in Fig 1 of the article, consists of two tracks: the algorithm track and the system track. The algorithm track focuses on hardware-independent algorithm prototyping to identify promising methods, which inform system design for optimization and relevant benchmarking. On the other hand, the system track enables the optimization and evaluation of performant implementations, providing feedback to refine algorithmic complexity modeling and analysis. The interplay between these tracks creates a virtuous cycle where algorithm innovations guide system implementation, and system-level insights accelerate further algorithmic progress, ultimately advancing neuromorphic algorithm-system co-design.
@@ -45,5 +47,6 @@ At the very beginning, we found a problem that keeps preventing us from continui
 We first thought our laptops lack arithmetic power because our most powerful GPUs only have 8G of memory space. Then the extremely large CPU memory (40G) also ended up with killing itself with the memory usage 35G/40G. We started to think that maybe some fundamental settings or configurations needed to be changed on our laptops, or maybe some changes are needed for the example code. 
 We reported this bug to one of the authors of this article. After he discussed this problem with his co-workers, they finally found the problem of memory overflowing and modified the codes to fix it.
 
-
+# References
+[1] 	arXiv:2304.04640
 
