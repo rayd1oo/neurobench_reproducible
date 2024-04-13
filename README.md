@@ -12,7 +12,7 @@ In our reproducibility project, we mainly used 4 criteria to reproduce the paper
 ## a.	NeuroBench
 NeuroBench is a benchmark framework designed for evaluating neuromorphic computing algorithms and systems, aiming to standardize the assessment of neuromorphic approaches in both hardware-independent and hardware-dependent settings. The advantages of NeuroBench lie in its inclusive and systematic methodology, providing a common set of tools for benchmark measurement that allows for objective comparisons between different neuromorphic models. By offering a structured framework for evaluation, NeuroBench facilitates the measurement of performance, enables comparisons with conventional methods, and helps identify promising research directions in the field of neuromorphic computing.
 
- ![Image 1](1.png)
+
 **Figure 1. Two main tracks of NeuroBench [1]**
 
 The structure of NeuroBench, as depicted in Fig 1 of the article, consists of two tracks: the algorithm track and the system track. The algorithm track focuses on hardware-independent algorithm prototyping to identify promising methods, which inform system design for optimization and relevant benchmarking. On the other hand, the system track enables the optimization and evaluation of performant implementations, providing feedback to refine algorithmic complexity modeling and analysis. The interplay between these tracks creates a virtuous cycle where algorithm innovations guide system implementation, and system-level insights accelerate further algorithmic progress, ultimately advancing neuromorphic algorithm-system co-design.
