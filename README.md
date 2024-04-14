@@ -4,9 +4,8 @@
 
 
 
-## Reproduced
+## Reproduction
 
-## Hyperparams check
 
 
 ## New algorithm variant
@@ -56,6 +55,49 @@ Throughout the pipeline, the trained TCN model is evaluated using both training 
 
 ### Results
 ![TCN Result](results_TCN.png)
+
+## Hyperparameters analysis
+In this project, we used neurobench to test the performance of a TCN model. Before incremental learning, a specific TCN model should be pretrained. Thus, the hyperparameters of the model were significant because different set of hyperparameters would result in different base accuracy of the pretrained model. 
+
+The definition of class TCN is showed below:
+```python
+class TCN(
+    input_size: int,
+    output_size: int,
+    channel_sizes: List[int | Tuple[int, int]],
+    kernel_size: int | List[int],
+    dropout: float = 0,
+    batch_norm: bool = False,
+    weight_norm: bool = False,
+    bottleneck: bool = False,
+    groups: int = 1,
+    residual: bool = True
+) 
+```
+Among all the hyperparameters, $kernel\_size$ and the $number\_of\_layers$ indicated in the $channel\_sizes$ and $kernel\_size$ lists had the greatest impact on the base accuracy on the base accuracies including train accuracy and test accuracy. $batch\_norm$ could slightly improve the performance and $weight\_norm$ had been deprecated. $dropout$ could avoid overfitting theoretically. 
+
+To find the optimal hyperparameter set of the TCN model, we conducted a hyperparameter search and analysis for the two most important hyperparameters: kernel size and number of layers. We assumed that the kernel size was identical in each layer. The batch size and channel size were both 256. We only ran 11 epochs in each pretrain process to save time, which should be enough for comparison. The results are in the following table. The accuracies are test accuracies.
+
+| kernel Size | Num Layers | Accuracy Epoch1 | Accuracy Epoch6 | Accuracy Epoch11 |
+| -------- | -------- | -------- | -------- | -------- |
+| 8   | 4     | 60.66%     | 79.67%     | 90.44%     |
+| 10   | 4     | 66.93%     | 87.99%     | 90.01%     |
+| 12   | 4     | 47.62%     | 88.31%     | 90.35%     |
+| 3   | 6     | 36.14%     | 77.28%     | 78.62%     |
+| 4   | 6     | 68.92%     | 85.95%     | 87.33%     |
+| 5   | 6    | 63.12%     | 85.69%     | 85.26%     |
+| 2   | 8     | 66%     | 78.2%     | 87.88%     |
+| 4   | 8     | 46%     | 87%     | 86.9%     |
+| 6   | 8     | 59.45%     | 85.17%     | 88.22%     |
+| 8   | 8     | 51.44%     | 86.71%     | 87.45%     |
+
+We  found that $num\_layers= 4$ was the most appropriate choice. $kernel\_size$ could either be 8,10 or 12; all had very high accuracies. So we finally decided to adopt the recommended configuration given by the function $get\_kernel\_size\_and\_layers()$ provided by TCN library, which returned the configuration of kernel size and number of layers that had a receptive field size closest (but always larger) than the required receptive field size. Since the receptive field of our TCN model should be larger than 201, $kernel\_size=9$ and $num\_layers= 4$. This configuration also aligns with our hyperparameter analysis.
+
+Our final model configuration was 
+```python
+TCN(20, 200, [256] * 4, [9] * 4, batch_norm=True, dropout=0.1)
+```
+Based on this model, we pretrained on the training dataset.
 
 ## New code variant
 
