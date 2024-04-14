@@ -52,7 +52,7 @@ NeuroBench is a benchmark framework designed for evaluating neuromorphic computi
 The structure of NeuroBench, as depicted in Fig 1 of the article, consists of two tracks: the algorithm track and the system track. The algorithm track focuses on hardware-independent algorithm prototyping to identify promising methods, which inform system design for optimization and relevant benchmarking. On the other hand, the system track enables the optimization and evaluation of performant implementations, providing feedback to refine algorithmic complexity modeling and analysis. The interplay between these tracks creates a virtuous cycle where algorithm innovations guide system implementation, and system-level insights accelerate further algorithmic progress, ultimately advancing neuromorphic algorithm-system co-design.
 In our project, we mainly focus on the algorithm track, using all the metrics NeuroBench provided to evaluate different models.
 
-<figure class="figureimg">
+<figure class="myfig">
   <img class="myimg" src="{{site.baseurl}}/resources/overview.png">
   <figcaption class="mycap">Figure 2. An overview of the NeuroBench algorithm track [1]</figcaption>
 </figure>
@@ -66,12 +66,12 @@ For the Keyword FSCIL task, the M5 ANN baseline is utilized. The M5 ANN is a tun
 This benchmark task involves two phases: pre-training and incremental learning. Initially, a set of 100 words from 5 base languages with 500 training samples each is used for pre-training the model. Subsequently, the model undergoes 10 successive sessions to learn words from 10 new languages in a few-shot learning scenario, with only 5 training samples available per word. The model is tested after each session on all previously learned classes, evaluating its ability to learn new classes while retaining knowledge of prior ones. By the end of the benchmark, the model is expected to have knowledge of 200 keywords.
 
 ### c.	Reproduction result
-<figure class="figureimg">
+<figure class="myfig">
   <img class="myimg" src="{{site.baseurl}}/resources/test_accuracy.png">
   <figcaption class="mycap">Figure 3. Test accuracy per session on the keyword FSCIL task for prototypical and frozen baselines, with the accuracy on both base classes and incrementally-learned classes (left), and accuracy on all incrementally-learned classes only (right). [1]</figcaption>
 </figure>
 
-<figure class="figureimg">
+<figure class="myfig">
   <img class="myimg" src="{{site.baseurl}}/resources/reproduced_performance.png">
   <figcaption class="mycap">Figure 4. Reproduced test accuracy performance</figcaption>
 </figure>
@@ -98,7 +98,7 @@ Temporal Convolutional Networks (TCNs) are a class of neural network architectur
 
 - **Residual Connections**: TCNs often incorporate residual connections, similar to those used in ResNet architectures. These connections facilitate the training of very deep networks by mitigating the vanishing gradient problem and improving information flow through the network.
 
-<figure class="figureimg">
+<figure class="myfig">
   <img class="myimg" src="{{site.baseurl}}/resources/TCN.png">
   <figcaption class="mycap">Figure 5. Architectural elements in a TCN.  (a) A dilated causal convolution. (b) TCN residual block. (c) An example of residual connection in a TCN. The blue lines are filters in the residual
 function, and the green lines are identity mappings. [2]</figcaption>
@@ -132,14 +132,14 @@ Following (optional) pre-training, the pre-trained TCN model undergoes increment
 
 Throughout the pipeline, the trained TCN model is evaluated using both training and testing datasets to assess its performance and generalization ability. Evaluation metrics such as classification accuracy, activation sparsity, and synaptic operations are computed to quantify the model's effectiveness in sequence modeling tasks. Evaluation is conducted at various checkpoints to monitor model progress and identify potential areas for improvement. The neurobench library is used for evaluation. We also implemented our own evaluation function as described in the new code variant section.
 
-<figure class="figureimg">
+<figure class="myfig">
   <img class="myimg" src="{{site.baseurl}}/resources/pipeline.svg">
   <figcaption class="mycap">Figure 6. Design Flow of Model Evaluation</figcaption>
 </figure>
 
 ### Results
 
-<figure class="figureimg">
+<figure class="myfig">
   <img class="myimg" src="{{site.baseurl}}/resources/results_TCN.png">
   <figcaption class="mycap">Figure 7. Results of TCN from Neurobench</figcaption>
 </figure>
