@@ -1,36 +1,21 @@
 # CS4240 Deep Learning Reproducibility Project Group 40: 
 ## NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems
-<style>
-.myauthors {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0.5em 0;
-}
-.myauthor {
-  font-size: 12px;
-  text-align: start;
-  width: 25%; /* Set each item to take up 25% of the container width */
-  padding: 0.5em;
-  box-sizing: border-box; /* Include padding in the width calculation */
-  mix-blend-mode: difference;
-}
-</style>
-<div class="myauthors">
-  <div class="myauthor">
+<div style="display: flex; flex-wrap: wrap; margin: 0.5em 0;">
+  <div style="font-size: 12px; text-align: start; width: 25%; padding: 0.5em; box-sizing: border-box;">
     Jiaheng Liu<br/>5950724<br/>
-    <a href="mailto://J.Liu-58@student.tudelft.nl">J.Liu-58@student.tudelft.nl</a>
+    <a href="mailto:J.Liu-58@student.tudelft.nl">J.Liu-58@student.tudelft.nl</a>
   </div>
-  <div class="myauthor">
+  <div style="font-size: 12px; text-align: start; width: 25%; padding: 0.5em; box-sizing: border-box;">
     Jinhui Liu<br/>5990246<br/>
-    <a href="mailto://J.Liu-62@student.tudelft.nl">J.Liu-62@student.tudelft.nl</a>
+    <a href="mailto:J.Liu-62@student.tudelft.nl">J.Liu-62@student.tudelft.nl</a>
   </div>
-  <div class="myauthor">
+  <div style="font-size: 12px; text-align: start; width: 25%; padding: 0.5em; box-sizing: border-box;">
     Kun Qian<br/>5995469<br/>
-    <a href="mailto://K.Qian-1@student.tudelft.nl">K.Qian-1@student.tudelft.nl</a>
+    <a href="mailto:K.Qian-1@student.tudelft.nl">K.Qian-1@student.tudelft.nl</a>
   </div>
-  <div class="myauthor">
+  <div style="font-size: 12px; text-align: start; width: 25%; padding: 0.5em; box-sizing: border-box;">
     Zhuoran Wang<br/>5951720<br/>
-    <a href="mailto://Z.Wang-102@student.tudelft.nl">Z.Wang-102@student.tudelft.nl</a>
+    <a href="mailto:Z.Wang-102@student.tudelft.nl">Z.Wang-102@student.tudelft.nl</a>
   </div>
 </div>
 
