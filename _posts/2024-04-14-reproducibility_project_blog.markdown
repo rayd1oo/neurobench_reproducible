@@ -17,19 +17,19 @@ header:
 <div class="myauthors">
   <div class="myauthor">
     Jiaheng Liu<br/>5950724<br/>
-    <a href="mailto://J.Liu-58@student.tudelft.nl">J.Liu-58@student.tudelft.nl</a>
+    <a href="mailto:J.Liu-58@student.tudelft.nl">J.Liu-58@student.tudelft.nl</a>
   </div>
   <div class="myauthor">
     Jinhui Liu<br/>5990246<br/>
-    <a href="mailto://J.Liu-62@student.tudelft.nl">J.Liu-62@student.tudelft.nl</a>
+    <a href="mailto:J.Liu-62@student.tudelft.nl">J.Liu-62@student.tudelft.nl</a>
   </div>
   <div class="myauthor">
     Kun Qian<br/>5995469<br/>
-    <a href="mailto://K.Qian-1@student.tudelft.nl">K.Qian-1@student.tudelft.nl</a>
+    <a href="mailto:K.Qian-1@student.tudelft.nl">K.Qian-1@student.tudelft.nl</a>
   </div>
   <div class="myauthor">
     Zhuoran Wang<br/>5951720<br/>
-    <a href="mailto://Z.Wang-102@student.tudelft.nl">Z.Wang-102@student.tudelft.nl</a>
+    <a href="mailto:Z.Wang-102@student.tudelft.nl">Z.Wang-102@student.tudelft.nl</a>
   </div>
 </div>
 ## Introduction
@@ -133,7 +133,7 @@ Following (optional) pre-training, the pre-trained TCN model undergoes increment
 Throughout the pipeline, the trained TCN model is evaluated using both training and testing datasets to assess its performance and generalization ability. Evaluation metrics such as classification accuracy, activation sparsity, and synaptic operations are computed to quantify the model's effectiveness in sequence modeling tasks. Evaluation is conducted at various checkpoints to monitor model progress and identify potential areas for improvement. The neurobench library is used for evaluation. We also implemented our own evaluation function as described in the new code variant section.
 
 <figure class="myfig">
-  <img class="myimg" src="{{site.baseurl}}/resources/pipeline.svg">
+  <img class="myimg mysvg" src="{{site.baseurl}}/resources/pipeline.svg">
   <figcaption class="mycap">Figure 6. Design Flow of Model Evaluation</figcaption>
 </figure>
 

@@ -28,17 +28,16 @@ $header-font-family : $sans-serif-narrow;
 .myauthors {
     display: flex;
     flex-wrap: wrap;
-    margin: .5em 0 .5em;
-    .myauthor {
-        font-size: 12px;
-        text-align: start;
-        display: block;
-        width: fit-content;
-        white-space:nowrap;
-        padding: 5px;
-        mix-blend-mode: difference;
-    }
-}
+    margin: 0.5em 0;
+  }
+  .myauthor {
+    font-size: 12px;
+    text-align: start;
+    width: 25%; /* Set each item to take up 25% of the container width */
+    padding: 0.5em;
+    box-sizing: border-box; /* Include padding in the width calculation */
+    mix-blend-mode: difference;
+  }
 
 #introduction {
     margin: .8em 0 .5em;
@@ -46,8 +45,16 @@ $header-font-family : $sans-serif-narrow;
 
 .myfig {
     display: inline-block;
+    width: 100%;
+    text-align: center;
     .myimg {
         align-items: center;
+    }
+    .mysvg {
+        display: block; 
+        margin: auto;
+        margin-bottom: 1em;
+        max-width: 60%; 
     }
     .mycap {
         font-weight: 600;

@@ -1,8 +1,42 @@
-# neurobench reproducible blog
-# NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems
+# CS4240 Deep Learning Reproducibility Project Group 40: 
+## NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems
+<style>
+.myauthors {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0.5em 0;
+}
+.myauthor {
+  font-size: 12px;
+  text-align: start;
+  width: 25%; /* Set each item to take up 25% of the container width */
+  padding: 0.5em;
+  box-sizing: border-box; /* Include padding in the width calculation */
+  mix-blend-mode: difference;
+}
+</style>
+<div class="myauthors">
+  <div class="myauthor">
+    Jiaheng Liu<br/>5950724<br/>
+    <a href="mailto://J.Liu-58@student.tudelft.nl">J.Liu-58@student.tudelft.nl</a>
+  </div>
+  <div class="myauthor">
+    Jinhui Liu<br/>5990246<br/>
+    <a href="mailto://J.Liu-62@student.tudelft.nl">J.Liu-62@student.tudelft.nl</a>
+  </div>
+  <div class="myauthor">
+    Kun Qian<br/>5995469<br/>
+    <a href="mailto://K.Qian-1@student.tudelft.nl">K.Qian-1@student.tudelft.nl</a>
+  </div>
+  <div class="myauthor">
+    Zhuoran Wang<br/>5951720<br/>
+    <a href="mailto://Z.Wang-102@student.tudelft.nl">Z.Wang-102@student.tudelft.nl</a>
+  </div>
+</div>
+
 ## Introduction
 Recent years, the need for an evaluating system like NeuroBench in neuromorphic computing arises from the lack of standardized benchmarks in the field, making it challenging to accurately measure technological advancements, compare performance with conventional methods, and identify promising future research directions. In this blog, a new evaluation system for neuromorphic computing algorithms, NeuroBench, is introduced. We aim to provide the reader with a clear picture of the function of NeuroBench by explaining the structure of it, testing its efficiency on M5 Artificial Neural Network (M5 ANN) and Temporal Convolutional Network (TCN), and analyzing its advantages towards traditional evaluation metrics. 
-  
+
 In our reproducibility project, we mainly used 4 criteria to reproduce the paper: **Reproduction**, **New algorithm variant**, **Hyperparameter analysis**, **New code variant**. We first used the existing M5 ANN codes on the github website of NeuroBench to evaluate the proposed benchmark - Keyword Few-Shot Class-Incremental Learning (FSCIL). Then we substituted the ANN with a new algorithm, TCN, to check the generalizability of the benchmark. After that, we tuned the hyperparams of the network and changed the benchmark metrics with our own testing function to evaluate the results. During the course of the project, we also found a memory overflow problem in the codes which is provided by the authors of the article. We reflected it to the authors and had the bug get fixed.
 
 The project team engaged in a collaborative problem-solving process to identify and address the key challenges associated with the source codes and the variant codes. Through a joint effort, the team was able to effectively define and tackle the reporduction and the new algorithm and code variation.
@@ -193,6 +227,6 @@ Note: If an older version is installed, it must be removed first.
 Our project successfully demonstrated the efficacy of the NeuroBench framework through rigorous reproduction, testing, and enhancing of both the M5 ANN and TCN models in neuromorphic computing. By integrating new algorithmic variants and confirming the adaptability of NeuroBench across diverse architectures, we validated its robustness and flexibility. This endeavor not only reinforced NeuroBench's reliability but also expanded our team's technical expertise in working with artificial neural networks and advanced neuromorphic systems. Through this comprehensive evaluation, we provided valuable insights into optimizing computational methods, significantly contributing to future advancements in the field of neuromorphic computing.
 
 ## References
-[1] 	[NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems](https://arxiv.org/abs/2304.04640)
+[1]   [NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems](https://arxiv.org/abs/2304.04640)
 
 [2]   [An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling](https://arxiv.org/pdf/1803.01271.pdf)
