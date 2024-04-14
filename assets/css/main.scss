@@ -30,14 +30,16 @@ $header-font-family : $sans-serif-narrow;
     flex-wrap: wrap;
     margin: 0.5em 0;
   }
-  .myauthor {
+.myauthor {
     font-size: 12px;
     text-align: start;
     width: 25%; /* Set each item to take up 25% of the container width */
     padding: 0.5em;
     box-sizing: border-box; /* Include padding in the width calculation */
-  }
+}
 
+#introduction {
+    margin: .8em 0 .5em;
 }
 
 .myfig {
