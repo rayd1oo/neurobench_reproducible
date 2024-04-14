@@ -12,17 +12,8 @@ $header-font-family : $sans-serif-narrow;
 
 .page {
     @media (min-width: 80em) {
-        .page {
-            width: calc(100% - 200px);
-        }
+        width: calc(100% - 200px) !important;
     }
-    
-    @media (min-width: 64em) {
-        .page {
-            width: calc(100% - 150px);
-        }
-    }
-    
 }
 
 .myauthors {
@@ -67,9 +58,9 @@ $header-font-family : $sans-serif-narrow;
 }
 
 .team-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     padding: 20px;
 }
 
@@ -79,35 +70,34 @@ $header-font-family : $sans-serif-narrow;
     padding: 30px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     position: relative;
-    text-align: start; 
+    text-align: start;
+    display: flex;
+    flex-direction: column;
+    width: calc(50% - 25px); 
+    margin-bottom: 25px;
 }
 
 .team-member img {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    display: block; 
-    margin: 0 auto 10px auto;
+    display: block;
+    align-self: center;
+    margin-bottom: 10px;
 }
 
 .team-member h3 {
-    margin: 5px 0;
-    text-align: center;
+    margin: 8px 0;
+    align-self: center;
 }
 
-.team-member p {
-    margin-bottom: 5px !important; 
-    text-align: start; 
+.member-entry {
+    margin: 2px 0;
+    text-align: start;
     color: #333;
+    font-size: 70%;
 }
 
-.team-member .email {
-    white-space: nowrap;
-    overflow:visible;
-    display: block;
-}
-
-
-
+@import url("path/to/stylesheet.css");
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
