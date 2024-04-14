@@ -66,5 +66,48 @@ $header-font-family : $sans-serif-narrow;
     padding: .3em;
 }
 
+.team-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 25px;
+    padding: 20px;
+}
+
+.team-member {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    position: relative;
+    text-align: start; 
+}
+
+.team-member img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: block; 
+    margin: 0 auto 10px auto;
+}
+
+.team-member h3 {
+    margin: 5px 0;
+    text-align: center;
+}
+
+.team-member p {
+    margin-bottom: 5px !important; 
+    text-align: start; 
+    color: #333;
+}
+
+.team-member .email {
+    white-space: nowrap;
+    overflow:visible;
+    display: block;
+}
+
+
+
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials

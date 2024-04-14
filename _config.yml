@@ -13,16 +13,17 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: CS4240 Project Group 40
-email: your-email@example.com
+title: CS4240 Deep Learning
+subtitle: 'Project Group 40'
+email: K.Qian-1@student.tudelft.nl
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  This website is used to publish blogs related to CS4240 
+  Deep Learning’s Group 40 recurrence papers.
 baseurl: "/neurobench_reproducible" # the base hostname & protocol for your site, e.g. http://example.com
 url: "https://rayd1oo.github.io" # the subpath of your site, e.g. /blog
 # twitter_username: rayd1oo
-github_username:  rayd1oo
+# github_username:  rayd1oo
+logo: "/resources/avatar.png"
 
 # Build settings
 markdown: kramdown
@@ -53,6 +54,7 @@ defaults:
     values:
       layout: single
       author_profile: true
+      show_date: true
       read_time: true
       comments: true
       share: true
@@ -60,3 +62,12 @@ defaults:
       toc: true
       toc_sticky: true
       toc_label: "Table of Contents"
+
+google:
+  search_engine_id: 817c2dfac743e47f0
+
+footer:
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/rayd1oo/neurobench_reproducible"

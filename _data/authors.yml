@@ -15,6 +15,6 @@ Group 40:
     - label: "Jiaheng Liu"
       icon: "fas fa-fw fa-envelope-square"
       url: "mailto:J.Liu-58@student.tudelft.nl"
-    - label: "Website"
-      icon: "fas fa-fw fa-link"
+    - label: "Repository"
+      icon: "fab fa-fw fa-github"
       url: "https://rayd1oo.github.io/neurobench_reproducible/"
