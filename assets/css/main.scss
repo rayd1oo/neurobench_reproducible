@@ -93,10 +93,19 @@ $header-font-family : $sans-serif-narrow;
 
 .member-entry {
     margin: 2px 0;
-    text-align: start;
     color: #333;
     font-size: 70%;
 }
+
+@media (max-width: 768px) {
+    .team-container {
+        flex-direction: column;
+    }
+    .team-member {
+        width: 100%
+    }
+}
+
 
 @import url("path/to/stylesheet.css");
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
