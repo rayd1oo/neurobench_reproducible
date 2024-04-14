@@ -1,0 +1,64 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+search: false
+---
+
+@charset "utf-8";
+$serif              : "PT Serif", Georgia, Times, serif;
+$sans-serif-narrow  : "PT Sans Narrow", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+
+$global-font-family : $serif;
+$header-font-family : $sans-serif-narrow;
+
+.page {
+    @media (min-width: 80em) {
+        .page {
+            width: calc(100% - 200px);
+        }
+    }
+    
+    @media (min-width: 64em) {
+        .page {
+            width: calc(100% - 150px);
+        }
+    }
+    
+}
+
+.myauthors {
+    display: flex;
+    flex-wrap: wrap;
+    margin: .5em 0 .5em;
+    .myauthor {
+        font-size: 12px;
+        text-align: start;
+        display: block;
+        width: fit-content;
+        white-space:nowrap;
+        padding: 5px;
+        mix-blend-mode: difference;
+    }
+}
+
+#introduction {
+    margin: .8em 0 .5em;
+}
+
+.myfig {
+    display: inline-block;
+    .myimg {
+        align-items: center;
+    }
+    .mycap {
+        font-weight: 600;
+        text-align: center;
+    }
+}
+
+.sidebar.sticky {
+    width: fit-content;
+    padding: .3em;
+}
+
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
+@import "minimal-mistakes"; // main partials
