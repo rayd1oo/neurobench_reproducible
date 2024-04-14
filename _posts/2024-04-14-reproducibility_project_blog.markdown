@@ -3,7 +3,7 @@
 title:  "Reproducibility Project Blog"
 author: Group 40
 date:   2024-04-14 15:14:28 +0200
-categories: Posts
+categories: Deep Learning
 header:
   overlay_image: /resources/header.png
   overlay_filter: 0.8 # same as adding an opacity of 0.5 to a black background
