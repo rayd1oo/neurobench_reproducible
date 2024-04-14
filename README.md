@@ -69,7 +69,7 @@ Temporal Convolutional Networks (TCNs) are a class of neural network architectur
 <figure style="text-align: center;">
   <img src="resources/TCN.png">
   <figcaption style="font-weight: bold;">Figure 5. Architectural elements in a TCN.  (a) A dilated causal convolution. (b) TCN residual block. (c) An example of residual connection in a TCN. The blue lines are filters in the residual
-function, and the green lines are identity mappings.</figcaption>
+function, and the green lines are identity mappings. [2]</figcaption>
 </figure>
 
 **Advantages**: TCNs offer several advantages over traditional RNNs, including:
@@ -194,3 +194,5 @@ Our project successfully demonstrated the efficacy of the NeuroBench framework t
 
 ## References
 [1] 	[NeuroBench: A Framework for Benchmarking Neuromorphic Computing Algorithms and Systems](https://arxiv.org/abs/2304.04640)
+
+[2]   [An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling](https://arxiv.org/pdf/1803.01271.pdf)
