@@ -3,12 +3,12 @@
 ## Introduction
 Recent years, the need for an evaluating system like NeuroBench in neuromorphic computing arises from the lack of standardized benchmarks in the field, making it challenging to accurately measure technological advancements, compare performance with conventional methods, and identify promising future research directions. In this blog, a new evaluation system for neuromorphic computing algorithms, NeuroBench, is introduced. We aim to provide the reader with a clear picture of the function of NeuroBench by explaining the structure of it, testing its efficiency on M5 Artificial Neural Network (M5 ANN) and Temporal Convolutional Network (TCN), and analyzing its advantages towards traditional evaluation metrics. 
   
-In our reproducibility project, we mainly used 4 criteria to reproduce the paper: **Reproduced**, **Hyperparams check**, **New algorithm variant**, **New code variant**. We first used the existing M5 ANN codes on the github website of NeuroBench to evaluate the proposed benchmark - Keyword Few-Shot Class-Incremental Learning (FSCIL). Then we substituted the ANN with a new algorithm, TCN, to check the generalizability of the benchmark. After that, we tuned the hyperparams of the network and changed the benchmark metrics with our own testing function to evaluate the results. During the course of the project, we also found a memory overflow problem in the codes which is provided by the authors of the article. We reflected it to the authors and had the bug get fixed.
+In our reproducibility project, we mainly used 4 criteria to reproduce the paper: **Reproduction**, **New algorithm variant**, **Hyperparameter analysis**, **New code variant**. We first used the existing M5 ANN codes on the github website of NeuroBench to evaluate the proposed benchmark - Keyword Few-Shot Class-Incremental Learning (FSCIL). Then we substituted the ANN with a new algorithm, TCN, to check the generalizability of the benchmark. After that, we tuned the hyperparams of the network and changed the benchmark metrics with our own testing function to evaluate the results. During the course of the project, we also found a memory overflow problem in the codes which is provided by the authors of the article. We reflected it to the authors and had the bug get fixed.
 
 The project team engaged in a collaborative problem-solving process to identify and address the key challenges associated with the source codes and the variant codes. Through a joint effort, the team was able to effectively define and tackle the reporduction and the new algorithm and code variation.
 
 
-## Reproduced
+## Reproduction
 ### a.	NeuroBench
 NeuroBench is a benchmark framework designed for evaluating neuromorphic computing algorithms and systems, aiming to standardize the assessment of neuromorphic approaches in both hardware-independent and hardware-dependent settings. The advantages of NeuroBench lie in its inclusive and systematic methodology, providing a common set of tools for benchmark measurement that allows for objective comparisons between different neuromorphic models. By offering a structured framework for evaluation, NeuroBench facilitates the measurement of performance, enables comparisons with conventional methods, and helps identify promising research directions in the field of neuromorphic computing.
 
@@ -53,7 +53,6 @@ At the very beginning, we found a problem that keeps preventing us from continui
 We first thought our laptops lack arithmetic power because our most powerful GPUs only have 8G of memory space. Then the extremely large CPU memory (40G) also ended up with killing itself with the memory usage 35G/40G. We started to think that maybe some fundamental settings or configurations needed to be changed on our laptops, or maybe some changes are needed for the example code. 
 We reported this bug to one of the authors of this article. After he discussed this problem with his co-workers, they finally found the problem of memory overflowing and modified the codes to fix it.
 
-## Hyperparams check
 
 
 ## New algorithm variant
@@ -112,6 +111,49 @@ Throughout the pipeline, the trained TCN model is evaluated using both training 
   <img src="resources/results_TCN.png">
   <figcaption style="font-weight: bold;">Figure 7. Results of TCN from Neurobench</figcaption>
 </figure>
+
+## Hyperparameters analysis
+In this project, we used neurobench to test the performance of a TCN model. Before incremental learning, a specific TCN model should be pretrained. Thus, the hyperparameters of the model were significant because different set of hyperparameters would result in different base accuracy of the pretrained model. 
+
+The definition of class TCN is showed below:
+```python
+class TCN(
+    input_size: int,
+    output_size: int,
+    channel_sizes: List[int | Tuple[int, int]],
+    kernel_size: int | List[int],
+    dropout: float = 0,
+    batch_norm: bool = False,
+    weight_norm: bool = False,
+    bottleneck: bool = False,
+    groups: int = 1,
+    residual: bool = True
+) 
+```
+Among all the hyperparameters, $kernel\_size$ and the $number\_of\_layers$ indicated in the $channel\_sizes$ and $kernel\_size$ lists had the greatest impact on the base accuracy on the base accuracies including train accuracy and test accuracy. $batch\_norm$ could slightly improve the performance and $weight\_norm$ had been deprecated. $dropout$ could avoid overfitting theoretically. 
+
+To find the optimal hyperparameter set of the TCN model, we conducted a hyperparameter search and analysis for the two most important hyperparameters: kernel size and number of layers. We assumed that the kernel size was identical in each layer. The batch size and channel size were both 256. We only ran 11 epochs in each pretrain process to save time, which should be enough for comparison. The results are in the following table. The accuracies are test accuracies.
+
+| kernel Size | Num Layers | Accuracy Epoch1 | Accuracy Epoch6 | Accuracy Epoch11 |
+| -------- | -------- | -------- | -------- | -------- |
+| 8   | 4     | 60.66%     | 79.67%     | 90.44%     |
+| 10   | 4     | 66.93%     | 87.99%     | 90.01%     |
+| 12   | 4     | 47.62%     | 88.31%     | 90.35%     |
+| 3   | 6     | 36.14%     | 77.28%     | 78.62%     |
+| 4   | 6     | 68.92%     | 85.95%     | 87.33%     |
+| 5   | 6    | 63.12%     | 85.69%     | 85.26%     |
+| 2   | 8     | 66%     | 78.2%     | 87.88%     |
+| 4   | 8     | 46%     | 87%     | 86.9%     |
+| 6   | 8     | 59.45%     | 85.17%     | 88.22%     |
+| 8   | 8     | 51.44%     | 86.71%     | 87.45%     |
+
+We  found that $num\_layers= 4$ was the most appropriate choice. $kernel\_size$ could either be 8,10 or 12; all had very high accuracies. So we finally decided to adopt the recommended configuration given by the function $get\_kernel\_size\_and\_layers()$ provided by TCN library, which returned the configuration of kernel size and number of layers that had a receptive field size closest (but always larger) than the required receptive field size. Since the receptive field of our TCN model should be larger than 201, $kernel\_size=9$ and $num\_layers= 4$. This configuration also aligns with our hyperparameter analysis.
+
+Our final model configuration was 
+```python
+TCN(20, 200, [256] * 4, [9] * 4, batch_norm=True, dropout=0.1)
+```
+Based on this model, we pretrained on the training dataset.
 
 ## New code variant
 As we progressed with the design and testing, we initiated the pretraining process for the TCN model. As outlined, benchmarks were conducted every five epochs using NeuroBench. However, we encountered a torch.cuda.OutOfMemoryError: CUDA out of memory error during training, specifically when the benchmarking was executed on NeuroBench. This error manifested as a rapid filling of GPU memory after two epochs, leading to a crash. To address this issue, we implemented a workaround to ensure the continuation of the validation project smoothly.
